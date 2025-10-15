@@ -32,33 +32,34 @@ Bu doküman, Faveyloon için hazırlanmış hızlı aksiyon planı ile standart 
 2. **Raporlama Panelleri:** Satış, stok ve kampanya performansını günlük/haftalık takip edecek rapor şablonları oluşturulur.
 3. **Görev Yönetimi:** Tüm aksiyon maddeleri proje yönetim aracına (ör. Linear, Asana) taşınır ve sorumlular atanır.
 
-## 6. Shopify x GitHub Tema Yayın Akışı
+## 6. Shopify x GitHub Tema Yayın ve Otomasyon Akışı
 
 Shopify temalarının GitHub üzerinden yönetilmesi, geliştirme ve canlı ortamlar arasında kontrollü bir yayın akışı sağlar. Aşağıdaki adımları izleyin:
 
-1. **GitHub Entegrasyonunu Aktifleştirme**
-   - Shopify yönetim panelinden **Settings → Apps and sales channels → Develop apps** adımlarını izleyin.
-   - “GitHub ile bağlan” seçeneğini kullanarak Shopify hesabınızı GitHub organizasyonu veya hesabınızla yetkilendirin.
-   - Tema deposu olarak kullanacağınız GitHub repository’sini seçin.
+1. **GitHub Deposu ve Erişim Hazırlığı**
+   - Shopify mağazasında **Settings → Apps and sales channels → Develop apps** yolunu izleyip mağaza için bir custom app oluşturun.
+   - “GitHub ile bağlan” seçeneğiyle Shopify hesabınızı GitHub organizasyonunuza yetkilendirin.
+   - Shopify’da kullanacağınız tema deposunu seçip canlı temayla eşleştirin; gerekli mağaza ve repository izinlerini verdiğinizden emin olun.
 
-2. **Tema Branch Yapısını Oluşturma**
-   - `main` branch’i canlı temayı temsil edecek şekilde belirleyin.
-   - Geliştirme için `develop` ve özellik bazlı kısa ömürlü feature branch’leri oluşturun.
-   - Shopify’ın önizleme temalarını kullanarak her feature branch’ini test edin.
+2. **Tema Branch Yapısı ve Koruma Kuralları**
+   - `main` branch’i canlı temayı temsil edecek şekilde işaretleyin, yayınlanan her sürüm için `git tag` kullanın.
+   - `develop` branch’ini staging temasıyla eşleştirerek QA süreçlerini burada yürütün.
+   - Kısa ömürlü feature branch’lerde geliştirme yapın; GitHub üzerinde branch koruma kuralları ve zorunlu inceleme ayarlarını etkinleştirin.
 
-3. **Yerel Geliştirme ve CLI Kurulumu**
+3. **Yerel Geliştirme Ortamı ve CLI Kullanımı**
    - Shopify CLI’ı kurun (`npm install -g @shopify/cli @shopify/theme`).
-   - `shopify theme pull` komutuyla canlı temanın son sürümünü yerel ortama alın.
-   - Değişiklikleri tamamladıktan sonra `shopify theme push --allow-live` komutuyla ilgili branch’e gönderin.
+   - `shopify login --store <mağaza-adı>` ve ardından `shopify theme pull --environment=live` komutuyla güncel temayı çekin.
+   - Geliştirme sırasında `shopify theme dev` ile canlı önizleme açın; değişiklikleri `git add`, `git commit` ve `git push origin <branch>` komutlarıyla GitHub’a gönderin.
 
-4. **Kod İnceleme ve Test Süreci**
-   - Her feature branch’i için Pull Request (PR) açın; görsel değişiklikler için tema önizleme bağlantısını PR açıklamasına ekleyin.
-   - Stil ve Liquid hatalarını yakalamak için Shopify Theme Check (`shopify theme check`) çalıştırın.
-   - Onaylanan PR’ları `develop` branch’ine birleştirin ve gerekli ise staging teması üzerinden kullanıcı kabul testlerini yapın.
+4. **Kod İnceleme, Test ve Otomatik Kontroller**
+   - Her feature branch’i için Pull Request açın; Shopify önizleme bağlantısını PR açıklamasına ekleyin.
+   - Shopify Theme Check (`shopify theme check --init && shopify theme check`) ve varsa jest/liquid testlerini yerel olarak çalıştırın.
+   - `.github/workflows/theme-ci.yml` benzeri bir GitHub Actions iş akışı ekleyerek `npm install -g @shopify/cli @shopify/theme` ve `shopify theme check` komutlarını otomatik hale getirin.
+   - CI kontrolleri geçtikten sonra PR’ları `develop` branch’ine birleştirip staging teması üzerinden kullanıcı kabul testlerini tamamlayın.
 
-5. **Canlıya Alma ve Geri Dönüş Planı**
-   - `develop` branch’inden `main` branch’ine release PR’ı açın; sürüm notlarını ve etkilenen sayfaları belgeleyin.
-   - Shopify panelinden `main` branch’ine bağlı temayı yayınlayın.
-   - Olası geri dönüşler için bir önceki release etiketini `git tag` ile saklayın; acil durumlarda ilgili etikete dönerek `shopify theme push` ile yayına alın.
+5. **Canlıya Alma, Otomatik Yayın ve Geri Dönüş Planı**
+   - `develop` branch’inden `main` branch’ine release PR’ı açın; değişiklik özetini ve etkilenen şablonları dokümante edin.
+   - Shopify panelindeki GitHub entegrasyon ekranında `main` branch’ine bağlı temayı yayınlayın veya otomatik yayın seçeneğini aktifleştirin.
+   - Canlıya aldıktan sonra `git tag vYY.MM.DD` gibi sürüm etiketleri oluşturun; acil durumlarda etikete dönüp `git revert` akışıyla onarım sağlayın.
 
-Bu akış, Faveyloon’un hızlı aksiyon ihtiyaçlarını standart Shopify operasyonlarıyla entegre ederken, GitHub destekli tema yönetimiyle sürdürülebilir bir geliştirme süreci sunar.
+Bu akış, Faveyloon’un hızlı aksiyon ihtiyaçlarını standart Shopify operasyonlarıyla entegre ederken, GitHub destekli tema yönetimi ve CI kontrolleriyle sürdürülebilir bir geliştirme süreci sunar.
